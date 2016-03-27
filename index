@@ -1,4 +1,42 @@
 % ruby
-puts "Hello, world!"
-^D
-Hello, world!
+
+STDOUT.sync = true
+ 
+class Node
+    attr_accessor :id, :links, :isExit, :dToExit, :movesLeft
+    def initialize(id)
+        @id=id
+        @links=[]
+        @isExit=false
+    end
+   
+    def initPath(dist, movesLeft)
+        @dToExit = dist
+        @movesLeft = movesLeft-@links.count{|n|n.isExit}
+        @links.each { |n| n.initPath(dist+1, @movesLeft+1) if n.dToExit>dist } if @isExit==false
+    end
+end
+ 
+@n, @l, @e = gets.split.map(&:to_i)
+@nodes = Array.new(@n) { |i| Node.new(i) }
+ 
+@l.times do
+    n1, n2 = gets.split.map(&:to_i)
+    @nodes[n1].links << @nodes[n2]
+    @nodes[n2].links << @nodes[n1]
+end
+ 
+@e.times { @nodes[gets.to_i].isExit = true }
+ 
+loop do
+    @nodes.each { |n| n.dToExit = 10000 }
+    @nodes[x=gets.to_i].initPath(1, 1)
+   
+    target1 = @nodes.select{|n|n.links.any?{|l|l.isExit}}.sort_by{|n|n.dToExit}.min_by{|e|e.movesLeft}
+    target2 = target1.links.find{|n|n.isExit}
+   
+    target1.links.delete(target2)
+    target2.links.delete(target1)
+   
+    puts "#{target1.id} #{target2.id}"
+end
